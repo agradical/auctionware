@@ -13,6 +13,8 @@ import javax.servlet.http.HttpSession;
 import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.MultivaluedMap;
 
+import org.apache.log4j.Logger;
+import org.apache.log4j.Priority;
 import org.codehaus.jettison.json.JSONObject;
 
 import com.google.gson.Gson;
@@ -28,7 +30,7 @@ import beans.UserBean;
 @WebServlet("/SessionControllerServlet")
 public class SessionControllerServlet extends HttpServlet {
 	private static final long serialVersionUID = 1L;
-       
+	final static Logger logger = Logger.getLogger(SessionControllerServlet.class);   
     /**
      * @see HttpServlet#HttpServlet()
      */
@@ -41,12 +43,16 @@ public class SessionControllerServlet extends HttpServlet {
 	 * @see HttpServlet#doPost(HttpServletRequest request, HttpServletResponse response)
 	 */
 	protected void doPost(HttpServletRequest request, HttpServletResponse response) throws ServletException, IOException {
+		
 		response.setContentType("text/json");
 		PrintWriter out=response.getWriter();
 		
 		String username=request.getParameter("username");
 		String password=request.getParameter("password");
 		String location = request.getParameter("location");
+		
+		logger.info("Request received from: "+ username);
+		
 		UserBean bean=new UserBean();
 		bean.setUserName(username);
 		bean.setPassword(password);
@@ -57,16 +63,9 @@ public class SessionControllerServlet extends HttpServlet {
 		try {			 
 			Client client = Client.create();
 			WebResource webResource = client.resource("http://localhost:9090/OnlineBiddingServices/rest/loginservices/checkuservalidity");
-			//MultivaluedMap formData = new MultivaluedMapImpl();
-			
-			//System.out.println();
 			Gson userJson = new Gson();
 			String data = userJson.toJson(bean);
-			//System.out.println("here is the data" + data);
 			
-			
-			//formData.add("username", name);
-			//formData.add("password", password);
 			ClientResponse restResponse = webResource
 			    .type(MediaType.APPLICATION_JSON)
 			    .post(ClientResponse.class, data);
@@ -74,16 +73,12 @@ public class SessionControllerServlet extends HttpServlet {
 			if (restResponse.getStatus() != 200) {
 				throw new RuntimeException("Failed : HTTP error code : " + restResponse.getStatus());
 			}
+			
 			Gson gson = new Gson();
 			UserBean user = gson.fromJson(restResponse.getEntity(String.class), UserBean.class);
 			bean = user;
- 
-			//String statusString = restResponse.getEntity(String.class);
 			status = user.isValidUser();
-			//status = Boolean.parseBoolean(statusString);//parse model here
 			
-			//String statusString = restResponse.getEntity(String.class);
-			//status = Boolean.parseBoolean(statusString);
 		} catch (Exception e) {
 			e.printStackTrace();
 		}
@@ -95,11 +90,9 @@ public class SessionControllerServlet extends HttpServlet {
 			System.out.println("session data: " + userBean.getUserName());
 			RequestDispatcher rd=request.getRequestDispatcher("MainPage.jsp");
 			rd.forward(request, response);
-			
-		
 		}
 		else{
-			RequestDispatcher rd=request.getRequestDispatcher("login-error.jsp");
+			RequestDispatcher rd=request.getRequestDispatcher("Error.jsp");
 			rd.forward(request, response);
 		}
 	}
