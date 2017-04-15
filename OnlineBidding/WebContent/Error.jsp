@@ -11,7 +11,7 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0">
   <meta name="description" content="">
   <meta name="google-site-verification" content="T_wO406v5oIVyhLHMJF0YFLxEOe5N-1QOSnjknze2UY" />
-  <title>Page not found — Dan Woodger Illustration</title>
+  <title>Page not found</title>
   <link rel="home" href="http://danwoodger.com/" />
   <link rel="stylesheet" media="all" href="http://danwoodger.com/assets/stylesheets/danwoodger.css" />
   <link rel="icon" type="image/png" href="http://danwoodger.com/assets/images/favicon.png" />

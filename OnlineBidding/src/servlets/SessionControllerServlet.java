@@ -54,12 +54,12 @@ public class SessionControllerServlet extends HttpServlet {
 		try {			 
 			Client client = Client.create();
 			WebResource webResource = client.resource("http://localhost:9090/OnlineBiddingServices/rest/loginservices/checkuservalidity");
-			webResource.header("secret", AuthKey.KEY);
 			
 			Gson userJson = new Gson();
 			String data = userJson.toJson(bean);
 			
 			ClientResponse restResponse = webResource
+				.header("secret", AuthKey.KEY)
 			    .type(MediaType.APPLICATION_JSON)
 			    .post(ClientResponse.class, data);
 			
