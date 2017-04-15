@@ -10,6 +10,8 @@ import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.MultivaluedMap;
 import javax.ws.rs.core.Response;
 
+import org.apache.log4j.Logger;
+
 import com.google.gson.Gson;
 
 import DAO.DBOperation;
@@ -20,6 +22,8 @@ import beans.RegisterBidBean;
 @Path("/bidservices")
 public class BidServices {
 	
+	final static Logger logger = Logger.getLogger(BidServices.class);
+
 	@Path("/newbid")
 	@POST
 	@Consumes("application/json")
@@ -28,15 +32,7 @@ public class BidServices {
 		boolean response = false;
 		boolean isAddNewUserSuccessful = true; //should be set to false
 		Gson gson = new Gson();
-		//ProductsBean products = gson.fromJson(data, ProductsBean.class);
 		RegisterBidBean bean = gson.fromJson(data, RegisterBidBean.class);
-		
-		
-		//
-		
-		//initialize prod_id and u_id here
-		
-		//String bidID = user.getBidID();
 	
 		String itemName= bean.getItemName();
 		String postUserEmail= bean.getPostUserEmail();
@@ -50,42 +46,18 @@ public class BidServices {
 		String actDesc = bean.getActDesc();
 		String actQuality = bean.getActQuality();
 		String actPrice = bean.getActPrice();
-		
-		
-		
-		//System.out.println("this is the item name address entered" + itemName);
-		//DBOperation dao = new DBOperation();
+
 		isAddNewUserSuccessful = DBOperation.prodBid(itemName,postUserEmail,bidUserEmail,itemID,bidderId,postUserID,expDesc,expQuality,expPrice, actDesc, actQuality, actPrice);
-		System.out.println(isAddNewUserSuccessful);
-		
-		//sql code to add userInformation to database goes here
-		
+		System.out.println(isAddNewUserSuccessful);		
 		
 		if(isAddNewUserSuccessful){
 			response = true;
-			System.out.println("value of string is: " + String.valueOf(response));
-			
-			/**
-			EmailService email = new EmailService();
-			email.setEmailTo(emailAddress);
-			email.setEmailFrom("ecommerceutdbookstore@gmail.com");
-			email.setHost("smtp.gmail.com");
-			email.setProperties();
-			email.setSession();
-			// debug code -> System.out.println(emailAddress);
-			
-			//default message for now
-			String subject = "F&N Bookstore succesful registration";
-			String msg = "Congratulations " + firstName + " you've successfully created an account " +
-						"\nyour username is " + username +
-						"\n\nEnjoy our service!!!";
-			
-			email.sendEmail(subject, msg);
-			
-			*/
+			//System.out.println("value of string is: " + String.valueOf(response));
+			logger.info("Register new bid SUCCESS");
 		}
 		else{
 			response = false;
+			logger.info("Register new bid FAIL");
 		}
 		//System.out.println("value of string is: " + String.valueOf(response));
 		return Response.ok().entity(String.valueOf(response)).build();

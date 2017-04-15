@@ -24,24 +24,17 @@ import com.sun.jersey.api.client.WebResource;
 import com.sun.jersey.core.util.MultivaluedMapImpl;
 
 import beans.UserBean;
-/**
- * Servlet implementation class SessionControllerServlet
- */
+
+//Login servlet
 @WebServlet("/SessionControllerServlet")
 public class SessionControllerServlet extends HttpServlet {
 	private static final long serialVersionUID = 1L;
 	final static Logger logger = Logger.getLogger(SessionControllerServlet.class);   
-    /**
-     * @see HttpServlet#HttpServlet()
-     */
+
     public SessionControllerServlet() {
         super();
-        // TODO Auto-generated constructor stub
     }
 
-	/**
-	 * @see HttpServlet#doPost(HttpServletRequest request, HttpServletResponse response)
-	 */
 	protected void doPost(HttpServletRequest request, HttpServletResponse response) throws ServletException, IOException {
 		
 		response.setContentType("text/json");
@@ -50,9 +43,7 @@ public class SessionControllerServlet extends HttpServlet {
 		String username=request.getParameter("username");
 		String password=request.getParameter("password");
 		String location = request.getParameter("location");
-		
-		logger.info("Request received from: "+ username);
-		
+				
 		UserBean bean=new UserBean();
 		bean.setUserName(username);
 		bean.setPassword(password);
@@ -63,6 +54,8 @@ public class SessionControllerServlet extends HttpServlet {
 		try {			 
 			Client client = Client.create();
 			WebResource webResource = client.resource("http://localhost:9090/OnlineBiddingServices/rest/loginservices/checkuservalidity");
+			webResource.header("secret", AuthKey.KEY);
+			
 			Gson userJson = new Gson();
 			String data = userJson.toJson(bean);
 			
@@ -90,9 +83,11 @@ public class SessionControllerServlet extends HttpServlet {
 			System.out.println("session data: " + userBean.getUserName());
 			RequestDispatcher rd=request.getRequestDispatcher("MainPage.jsp");
 			rd.forward(request, response);
+			logger.info("Login attempt from: "+ username+": SUCCESS");
 		}
 		else{
 			RequestDispatcher rd=request.getRequestDispatcher("Error.jsp");
+			logger.info("Login attempt from: "+ username+": FAIL");
 			rd.forward(request, response);
 		}
 	}

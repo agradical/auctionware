@@ -12,6 +12,7 @@ import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.MultivaluedMap;
 import javax.ws.rs.core.Response;
 
+import org.apache.log4j.Logger;
 import org.json.simple.JSONObject;
 
 import com.google.gson.Gson;
@@ -27,24 +28,23 @@ import beans.UserBean;
 @Path("/displaybids")
 public class DisplayBids {
 	
+	final static Logger logger = Logger.getLogger(DisplayBids.class);
+
+	
 	@Path("/display")
 	@POST
 	@Consumes("application/json")
     @Produces(MediaType.APPLICATION_JSON)
-	public Response addNewUser(String data) 
-	{
+	public Response addNewUser(String data) {
 		
 		boolean response = false;
 		
 		Gson gson = new Gson();
 		PostBean post = gson.fromJson(data, PostBean.class);
 		ProductsBean products = new ProductsBean();
-		
-		//search.getSearch();
-		
+			
 		//System.out.println("this is the value of search: " + search);
 		
-		//sql code to add userInformation to database goes here
 		String title = post.getPost();
 		System.out.println("The title is: " + title);
 		ArrayList<ArrayList<String>> postResult = DBOperation.searchBid(title);
@@ -54,7 +54,6 @@ public class DisplayBids {
 		
 		if(postResult != null){
 			response = true;
-			//post.setpostResult(postResult);
 			products.setValidation(response);
 			System.out.println("post result size " + postResult.size());
 			
@@ -75,7 +74,6 @@ public class DisplayBids {
 				product.setState(postResult.get(index).get(10));
 				product.setCity(postResult.get(index).get(11));
 				product.setEmailId(postResult.get(index).get(12));
-				//product.setImage(postResult.get(index).get(12));
 				//System.out.println(product.getUserName());
 				
 				products.addProducts(product);
@@ -86,7 +84,6 @@ public class DisplayBids {
 		
 			}
 			
-			//books.getBooks();
 		}
 		else
 		{
@@ -95,26 +92,6 @@ public class DisplayBids {
 			
 		}
 
-		/*
-		if(isSearchSuccessful){
-			response = true;
-			
-			List<Book> books = new ArrayList<Book>();
-			//books.add(book);
-			Book book = new Book();
-			book.setAuthor("J.K. Rowling");
-			book.setInventory(2);
-			book.setIsbn("12345");
-			book.setPrice(12.99);
-			book.setTitle("Harry Potter and the Philosopher's Stone");
-			//books.add();
-			
-		}
-		else
-		{
-			response = false;
-		}
-		*/
 		
 		Gson searchResultJson = new Gson();
 		String responseData = searchResultJson.toJson(products);

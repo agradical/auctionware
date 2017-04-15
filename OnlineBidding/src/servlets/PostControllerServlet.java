@@ -13,6 +13,7 @@ import javax.servlet.http.HttpSession;
 import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.MultivaluedMap;
 
+import org.apache.log4j.Logger;
 import org.codehaus.jettison.json.JSONObject;
 
 import com.google.gson.Gson;
@@ -22,26 +23,18 @@ import com.sun.jersey.api.client.WebResource;
 import com.sun.jersey.core.util.MultivaluedMapImpl;
 
 import beans.ProductBean;
-/**
- * Servlet implementation class PostControllerServlet
- */
+
 @WebServlet("/PostControllerServlet")
 public class PostControllerServlet extends HttpServlet {
 	private static final long serialVersionUID = 1L;
-       
-    /**
-     * @see HttpServlet#HttpServlet()
-     */
+	final static Logger logger = Logger.getLogger(PostControllerServlet.class);   
+
     public PostControllerServlet() {
         super();
-        // TODO Auto-generated constructor stub
     }
-
-	/**
-	 * @see HttpServlet#doPost(HttpServletRequest request, HttpServletResponse response)
-	 */
+    
     protected void doPost(HttpServletRequest request, HttpServletResponse response) throws ServletException, IOException {
-		System.out.println("do post is running!!");
+		//System.out.println("do post is running!!");
 		response.setContentType("text/json");
 		PrintWriter out=response.getWriter();
 		
@@ -81,22 +74,7 @@ public class PostControllerServlet extends HttpServlet {
 			
 			Gson userJson = new Gson();
 			String data = userJson.toJson(bean);
-			
-			/**
-			MultivaluedMap formData = new MultivaluedMapImpl();
-			formData.add("username", username);
-			formData.add("password", password);
-			formData.add("firstName", firstName);
-			formData.add("lastName", lastName);
-			formData.add("address", address);
-			formData.add("email", email);
-			formData.add("phone", phone);
-			
-			*/
-			
-			//ClientResponse restResponse = webResource
-			//    .type(MediaType.APPLICATION_FORM_URLENCODED_TYPE)
-			//    .post(ClientResponse.class, formData);
+
 			ClientResponse restResponse = webResource
 				    .type(MediaType.APPLICATION_JSON)
 				    .post(ClientResponse.class, data);
@@ -112,15 +90,16 @@ public class PostControllerServlet extends HttpServlet {
 		}
 		
 		if(status){
-			//HttpSession session = request.getSession();
-			//session.setAttribute("USER", username);
+
 			System.out.println("status: " + status);
 			RequestDispatcher rd=request.getRequestDispatcher("Bidding.jsp");
 			rd.forward(request, response);
+			logger.info("Bid SUCCESS");
 		}
 		else{
-			RequestDispatcher rd=request.getRequestDispatcher("login-error.jsp");
+			RequestDispatcher rd=request.getRequestDispatcher("Error.jsp");
 			rd.forward(request, response);
+			logger.info("Bid FAIL");
 		}
 	
 	}

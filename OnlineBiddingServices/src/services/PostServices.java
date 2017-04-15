@@ -10,6 +10,8 @@ import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.MultivaluedMap;
 import javax.ws.rs.core.Response;
 
+import org.apache.log4j.Logger;
+
 import com.google.gson.Gson;
 
 import DAO.DBOperation;
@@ -18,6 +20,8 @@ import beans.ProductBean;
 @Path("/postservices")
 public class PostServices {
 	
+	final static Logger logger = Logger.getLogger(PostServices.class);
+
 	@Path("/newpost")
 	@POST
 	@Consumes("application/json")
@@ -40,41 +44,18 @@ public class PostServices {
 		String city = user.getCity();
 		//String image = user.getImage();
 		String username = user.getUserName();
-		
-		
-		System.out.println("this is the item name address entered " + itemName);
-		//DBOperation dao = new DBOperation();
+		//System.out.println("this is the item name address entered " + itemName);
 		isAddNewUserSuccessful = DBOperation.prodPost(username, itemName, itemPrice, itemDesc, itemCategory, itemQuality, add1, add2,country, state,city);
-		System.out.println(" Product add succussful?: " + isAddNewUserSuccessful);
-		
-		//sql code to add userInformation to database goes here
-		
+		//System.out.println(" Product add succussful?: " + isAddNewUserSuccessful);
 		
 		if(isAddNewUserSuccessful){
 			response = true;
-			System.out.println("value of string is: " + String.valueOf(response));
-			
-			/**
-			EmailService email = new EmailService();
-			email.setEmailTo(emailAddress);
-			email.setEmailFrom("ecommerceutdbookstore@gmail.com");
-			email.setHost("smtp.gmail.com");
-			email.setProperties();
-			email.setSession();
-			// debug code -> System.out.println(emailAddress);
-			
-			//default message for now
-			String subject = "F&N Bookstore succesful registration";
-			String msg = "Congratulations " + firstName + " you've successfully created an account " +
-						"\nyour username is " + username +
-						"\n\nEnjoy our service!!!";
-			
-			email.sendEmail(subject, msg);
-			
-			*/
+			//System.out.println("value of string is: " + String.valueOf(response));
+			logger.info("Bid posting for product: "+itemName+": SUCCESS");
 		}
 		else{
 			response = false;
+			logger.info("Bid posting for product: "+itemName+": FAIL");
 		}
 		//System.out.println("value of string is: " + String.valueOf(response));
 		return Response.ok().entity(String.valueOf(response)).build();

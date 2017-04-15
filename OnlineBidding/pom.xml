@@ -24,6 +24,15 @@
         </configuration>
       </plugin>
     </plugins>
+    <resources>
+        <resource>
+            <directory>resources</directory>
+            <targetPath>${project.build.directory}</targetPath>
+            <includes>
+                <include>log4j.properties</include>
+            </includes>
+        </resource>
+    </resources>   
   </build>
   <dependencies>
   	<dependency>

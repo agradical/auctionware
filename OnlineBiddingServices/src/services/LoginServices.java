@@ -12,10 +12,13 @@ import javax.ws.rs.GET;
 import javax.ws.rs.POST;
 import javax.ws.rs.Path;
 import javax.ws.rs.Produces;
+import javax.ws.rs.core.Context;
+import javax.ws.rs.core.HttpHeaders;
 import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.MultivaluedMap;
 import javax.ws.rs.core.Response;
 
+import org.apache.log4j.Logger;
 import org.json.simple.JSONArray;
 import org.json.simple.JSONObject;
 
@@ -28,46 +31,38 @@ import javax.ws.rs.PathParam;
  
 @Path("/loginservices")
 public class LoginServices {
+	
+	final static Logger logger = Logger.getLogger(LoginServices.class);
+
 	@Path("/checkuservalidity")
 	@POST
 	@Consumes("application/json")
     @Produces(MediaType.APPLICATION_JSON)
-	public Response isValidUser(String data) throws IOException, SQLException, InterruptedException, ExecutionException {
-		System.out.println("inside the login services");
+	public Response isValidUser(@Context HttpHeaders headers, String data) throws IOException, SQLException, InterruptedException, ExecutionException {
+		
+		if(headers.getRequestHeader("secret") == null || !headers.getRequestHeader("secret").get(0).equals(AuthKey.KEY+"")) {
+			System.out.println(headers.getRequestHeader("secret"));
+			logger.info("Login Bad request without AuthKey");
+			return Response.status(302).entity("Unauthorized access").build();
+		}
+		
 		boolean response = false;
-		System.out.println("web service data " + data);
 		Gson gson = new Gson();
 		UserBean user = gson.fromJson(data, UserBean.class);
-		System.out.println("the user nameis NOW: " + user.getUserName());
-		System.out.println("the location is NOW: " + user.getLastLoginLocation());
+		
 		String username = user.getUserName();
 		String password = user.getPassword();
 		String location = user.getLastLoginLocation();
 		
 		DBOperation dao = new DBOperation();
 		boolean isValidUser = dao.userLogin(username, password, location);
-		JSONObject resultJSON = dao.getProfile(username);//get profile data for "u.sername"
+		JSONObject resultJSON = dao.getProfile(username);
 		JSONArray rows = (JSONArray) resultJSON.get("result");
 		
-		
-		
-		//System.out.println("the username is " + formParam.getFirst("username"));
-		//System.out.println("the username is " + formParam.getFirst("password"));
-		
-		if(isValidUser)
-		{
+		if(isValidUser) {
 			response = true;
-			/*
-			user.setFirstName(firstName);
-			user.setLastName(lastName);			
-			user.setAddress(dbAddress);
-			user.setLastLogin(lastLogin);
-			user.setPhone(phone);
-			user.setEmail(email);
-			user.setLoginAttempts(loginAttempts);
-			user.setValidation(response);*/
+			
 			for (int i = 0; i < rows.size(); i++) {//for each row
-				//user.setUserName(((JSONObject)rows.get(i)).get("username").toString());
 				user.setFirstName(((JSONObject)rows.get(i)).get("U_First_Name").toString());
 				user.setLastName(((JSONObject)rows.get(i)).get("U_Last_Name").toString());
 				user.setAddress1(((JSONObject)rows.get(i)).get("Address_Line1").toString());
@@ -81,24 +76,25 @@ public class LoginServices {
 				user.setPhone(((JSONObject)rows.get(i)).get("Ph_No").toString());
 				user.setEmail(((JSONObject)rows.get(i)).get("Email_Id").toString());
 				user.setLoginAttempts(Integer.parseInt(((JSONObject)rows.get(i)).get("No_failed_login").toString()));
-				System.out.println("entering the loop ");
 			}
 			
 			user.setLoggedIn(true);
-			//user.setLoginAttempts(3);
 			user.setValidation(response);	
+			
+			logger.info("Login request:"+username+": SUCCESS");
 			
 		}
 		else{
 			response = false;
 			user.setLoginAttempts((user.getLoginAttempts()+1));
 			user.setValidation(response);
+			logger.info("Login request:"+username+": FAIL");
 		}
 		
 		Gson userJson = new Gson();
 		String responseData = userJson.toJson(user);
-		//return Response.ok().entity(String.valueOf(response)).build();
 		return Response.ok().entity(responseData).build();
+		
 	}
 	
 	@Path("/availableusername/{username}")

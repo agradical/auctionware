@@ -13,6 +13,7 @@ import javax.servlet.http.HttpSession;
 import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.MultivaluedMap;
 
+import org.apache.log4j.Logger;
 import org.codehaus.jettison.json.JSONObject;
 
 import com.google.gson.Gson;
@@ -27,47 +28,26 @@ import beans.ProductsBean;
 import beans.RegisterBidBean;
 import beans.RegisterBidsBean;
 
-/**
- * Servlet implementation class CheckBidsServlet
- */
+
 @WebServlet("/CheckBidsServlet")
 public class CheckBidsServlet extends HttpServlet {
 	private static final long serialVersionUID = 1L;
-       
-    /**
-     * @see HttpServlet#HttpServlet()
-     */
+	final static Logger logger = Logger.getLogger(CheckBidsServlet.class);   
+
     public CheckBidsServlet() {
         super();
-        // TODO Auto-generated constructor stub
     }
 
-	/**
-	 * @see HttpServlet#doPost(HttpServletRequest request, HttpServletResponse response)
-	 */
-    
+	
     protected void doPost(HttpServletRequest request, HttpServletResponse response) throws ServletException, IOException {
-		System.out.println("do post is running!!");
+		//System.out.println("do post is running!!");
 		response.setContentType("text/json");
 		PrintWriter out=response.getWriter();
+		    
+		String searchText = request.getParameter("itemid");
 		
-		
-		//write code for Prod_ID and U_ID here, everything else is taken care of
-		
-		//String bidID = request.getParameter("bidID");    
-		String searchText = request.getParameter("itemid"); 
-		//String username = request.getParameter("users"); 
-		//String postUserID = request.getParameter("username");
-		//String itemDesc = request.getParameter("itemdesc"); 
-		//String itemQuality = request.getParameter("itemquality");
-		//String itemPrice = request.getParameter("itemprice");
-		//System.out.println("controller : "+postUserID );
-		//String searchText = request.getParameter("users");
-		//searchText = "%" + searchText  + "%";
-		
-		//ProductsBean products = new ProductsBean();
 		PostBean postBean = new PostBean();
-		System.out.println("searchtext:" + searchText);
+		//System.out.println("searchtext:" + searchText);
 		postBean.setPost(searchText);
 		
 		RegisterBidsBean products=new RegisterBidsBean();
@@ -79,11 +59,7 @@ public class CheckBidsServlet extends HttpServlet {
 			
 			Gson userJson = new Gson();
 			String data = userJson.toJson(postBean);
-			
-			
-			//ClientResponse restResponse = webResource
-			//    .type(MediaType.APPLICATION_FORM_URLENCODED_TYPE)
-			//    .post(ClientResponse.class, formData);
+
 			ClientResponse restResponse = webResource
 				    .type(MediaType.APPLICATION_JSON)
 				    .post(ClientResponse.class, data);
@@ -95,30 +71,28 @@ public class CheckBidsServlet extends HttpServlet {
 			Gson gson = new Gson();
 			RegisterBidsBean searchResult = gson.fromJson(restResponse.getEntity(String.class), RegisterBidsBean.class);
 				
-			System.out.println("servlet printing now: ");
-			//searchResult.getBooks();
+			//System.out.println("servlet printing now: ");
 			
 			products = searchResult;
 			
-			
-			//String statusString = restResponse.getEntity(String.class);
-			//status = Boolean.parseBoolean(statusString);
 			status = products.isValidPost();
-			System.out.println("servlet status: " + status);
+			//System.out.println("servlet status: " + status);
 		} catch (Exception e) {
 			e.printStackTrace();
 		}
 		
 		if(status){
-			System.out.println("status is good!");
+			//System.out.println("status is good!");
 			HttpSession session = request.getSession();
 			session.setAttribute("BIDS", products);
 			RequestDispatcher rd=request.getRequestDispatcher("BiddingDescriptionPage.jsp");
 			rd.forward(request, response);
+			logger.info("Bids post page SUCCESS");
 		}
 		else{
-			RequestDispatcher rd=request.getRequestDispatcher("login-error.jsp");
+			RequestDispatcher rd=request.getRequestDispatcher("Error.jsp");
 			rd.forward(request, response);
+			logger.info("Bids post page FAIL");
 		}
 		
 		

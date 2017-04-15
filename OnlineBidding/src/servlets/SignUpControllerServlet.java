@@ -13,6 +13,8 @@ import javax.servlet.http.HttpSession;
 import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.MultivaluedMap;
 
+import org.apache.log4j.Logger;
+
 import com.google.gson.Gson;
 import com.sun.jersey.api.client.Client;
 import com.sun.jersey.api.client.ClientResponse;
@@ -21,35 +23,21 @@ import com.sun.jersey.core.util.MultivaluedMapImpl;
 
 import beans.UserBean;
 
-/**
- * Servlet implementation class SignUpControllerServlet
- */
 @WebServlet("/SignUpControllerServlet")
 public class SignUpControllerServlet extends HttpServlet {
 	private static final long serialVersionUID = 1L;
-       
-    /**
-     * @see HttpServlet#HttpServlet()
-     */
+	Logger logger = Logger.getLogger(SignUpControllerServlet.class);
+	
     public SignUpControllerServlet() {
         super();
-        // TODO Auto-generated constructor stub
     }
 
-	/**
-	 * @see HttpServlet#doGet(HttpServletRequest request, HttpServletResponse response)
-	 */
 	protected void doGet(HttpServletRequest request, HttpServletResponse response) throws ServletException, IOException {
-		// TODO Auto-generated method stub
 		response.getWriter().append("Served at: ").append(request.getContextPath());
 	}
-
-	/**
-	 * @see HttpServlet#doPost(HttpServletRequest request, HttpServletResponse response)
-	 */
+	
 	protected void doPost(HttpServletRequest request, HttpServletResponse response) throws ServletException, IOException {
-		// TODO Auto-generated method stub
-		//response.setContentType("text/html");
+
 		response.setContentType("text/json");
 		PrintWriter out=response.getWriter();
 		
@@ -83,49 +71,63 @@ public class SignUpControllerServlet extends HttpServlet {
 		userBean.setCity(city);
 		userBean.setGender(gender);
 		
-		
 		request.setAttribute("bean",userBean);
-		//debug********************************//
-		//System.out.println(username);
-		//System.out.println(email);
-		
+				
 		Boolean status = false;
 		try {
-			 
+			
+			// Added Multiple microservices call
+			// 1. check for username availibility
+			// 2. actual signup
+			
 			Client client = Client.create();
-			WebResource webResource = client.resource("http://localhost:9090/OnlineBiddingServices/rest/signupservices/newuser");
-			
-			Gson userJson = new Gson();
-			String data = userJson.toJson(userBean);
-			
-			MultivaluedMap formData = new MultivaluedMapImpl();
-			formData.add("username", username);
-			formData.add("password", password);
-			formData.add("firstName", firstName);
-			formData.add("lastName", lastName);
-			formData.add("address1", address1);
-			formData.add("email", email);
-			formData.add("phone", phone);
-			formData.add("address2",address2);
-			formData.add("city", city);
-			formData.add("state", state);
-			formData.add("country", country);
-			formData.add("dateofbirth", dateofbirth);
-			formData.add("gender", gender);
-			
-			//ClientResponse restResponse = webResource
-			  //  .type(MediaType.APPLICATION_FORM_URLENCODED_TYPE)
-			   // .post(ClientResponse.class, formData);
+			WebResource webResource = client.resource("http://localhost:9090/OnlineBiddingServices/rest/signupservices/usernameavailability/"+username);
 			ClientResponse restResponse = webResource
-			    .type(MediaType.APPLICATION_JSON)
-			  .post(ClientResponse.class, data);
+					.type(MediaType.APPLICATION_JSON)
+					.get(ClientResponse.class);
 			
 			if (restResponse.getStatus() != 200) {
 				throw new RuntimeException("Failed : HTTP error code : " + restResponse.getStatus());
 			}
  
 			String statusString = restResponse.getEntity(String.class);
-			status = Boolean.parseBoolean(statusString);
+			boolean isusernamepresent = Boolean.parseBoolean(statusString);
+
+			if(!isusernamepresent) {
+			
+				webResource = client.resource("http://localhost:9090/OnlineBiddingServices/rest/signupservices/newuser");
+				
+				Gson userJson = new Gson();
+				String data = userJson.toJson(userBean);
+				
+				
+				MultivaluedMap<String, String> formData = new MultivaluedMapImpl();
+				formData.add("username", username);
+				formData.add("password", password);
+				formData.add("firstName", firstName);
+				formData.add("lastName", lastName);
+				formData.add("address1", address1);
+				formData.add("email", email);
+				formData.add("phone", phone);
+				formData.add("address2",address2);
+				formData.add("city", city);
+				formData.add("state", state);
+				formData.add("country", country);
+				formData.add("dateofbirth", dateofbirth);
+				formData.add("gender", gender);
+	
+				restResponse = webResource
+									.type(MediaType.APPLICATION_JSON)
+									.post(ClientResponse.class, data);
+				
+				if (restResponse.getStatus() != 200) {
+					throw new RuntimeException("Failed : HTTP error code : " + restResponse.getStatus());
+				}
+	 
+				statusString = restResponse.getEntity(String.class);
+				status = Boolean.parseBoolean(statusString);
+			}
+			
 		} catch (Exception e) {
 			e.printStackTrace();
 		}
@@ -135,10 +137,12 @@ public class SignUpControllerServlet extends HttpServlet {
 			session.setAttribute("USER", username);
 			RequestDispatcher rd=request.getRequestDispatcher("LoginPage.jsp");
 			rd.forward(request, response);
+			logger.info("Signup request: "+ username+": SUCCESS");
 		}
 		else{
-			RequestDispatcher rd=request.getRequestDispatcher("login-error.jsp");
+			RequestDispatcher rd=request.getRequestDispatcher("Error.jsp");
 			rd.forward(request, response);
+			logger.info("Signup request: "+ username+": FAIL");
 		}
 	
 	}

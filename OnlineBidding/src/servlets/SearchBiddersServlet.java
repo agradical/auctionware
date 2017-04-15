@@ -13,6 +13,8 @@ import javax.servlet.http.HttpSession;
 import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.MultivaluedMap;
 
+import org.apache.log4j.Logger;
+
 import com.google.gson.Gson;
 import com.sun.jersey.api.client.Client;
 import com.sun.jersey.api.client.ClientResponse;
@@ -26,26 +28,16 @@ import beans.RegisterBidBean;
 
 import java.util.ArrayList;
 
-/**
- * Servlet implementation class SearchServlet
- */
 @WebServlet("/SearchBiddersServlet")
 public class SearchBiddersServlet extends HttpServlet {
 	private static final long serialVersionUID = 1L;
-       
-    /**
-     * @see HttpServlet#HttpServlet()
-     */
+	final static Logger logger = Logger.getLogger(SearchBiddersServlet.class);   
+
     public SearchBiddersServlet() {
         super();
-        // TODO Auto-generated constructor stub
     }
 
-	/**
-	 * @see HttpServlet#doPOST(HttpServletRequest request, HttpServletResponse response)
-	 */
 	protected void doPost(HttpServletRequest request, HttpServletResponse response) throws ServletException, IOException {
-		// TODO Auto-generated method stub
 		response.setContentType("text/json");
 		
 		String searchText = request.getParameter("search");
@@ -63,10 +55,6 @@ public class SearchBiddersServlet extends HttpServlet {
 			Gson userJson = new Gson();
 			String data = userJson.toJson(searchBean);
 			
-			
-			//ClientResponse restResponse = webResource
-			//    .type(MediaType.APPLICATION_FORM_URLENCODED_TYPE)
-			//    .post(ClientResponse.class, formData);
 			ClientResponse restResponse = webResource
 				    .type(MediaType.APPLICATION_JSON)
 				    .post(ClientResponse.class, data);
@@ -78,37 +66,30 @@ public class SearchBiddersServlet extends HttpServlet {
 			Gson gson = new Gson();
 			RegisterBidsBean searchResult = gson.fromJson(restResponse.getEntity(String.class), RegisterBidsBean.class);
 				
-			System.out.println("servlet printing now: ");
-			//searchResult.getBooks();
+			//System.out.println("servlet printing now: ");
 			
 			products = searchResult;
-			//System.out.print(products.getACTPRICE(0));
-			
-			
-			//String statusString = restResponse.getEntity(String.class);
-			//status = Boolean.parseBoolean(statusString);
+
 			status = products.isValidSearch();
-			System.out.println("servlet status: " + status);
+			//System.out.println("servlet status: " + status);
 		} catch (Exception e) {
 			e.printStackTrace();
 		}
 		
 		if(status){
-			System.out.println("status is good!");
+			//System.out.println("status is good!");
 			HttpSession session = request.getSession();
 			session.setAttribute("PRODUCT", products);
 			RequestDispatcher rd=request.getRequestDispatcher("SearchBidders.jsp");
 			rd.forward(request, response);
+			logger.info("Search SUCCESS");
 		}
 		else{
 			RequestDispatcher rd=request.getRequestDispatcher("login-error.jsp");
 			rd.forward(request, response);
+			logger.info("Search FAIL");
 		}
 		
-		
-		//now send request to service
-		
 	}
-
 
 }

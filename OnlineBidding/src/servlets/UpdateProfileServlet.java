@@ -13,6 +13,8 @@ import javax.servlet.http.HttpSession;
 import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.MultivaluedMap;
 
+import org.apache.log4j.Logger;
+
 import com.google.gson.Gson;
 import com.sun.jersey.api.client.Client;
 import com.sun.jersey.api.client.ClientResponse;
@@ -21,38 +23,24 @@ import com.sun.jersey.core.util.MultivaluedMapImpl;
 
 import beans.UserBean;
 
-/**
- * Servlet implementation class UpdateProfileServlet
- */
 @WebServlet("/UpdateProfileServlet")
 public class UpdateProfileServlet extends HttpServlet {
 	private static final long serialVersionUID = 1L;
-       
-    /**
-     * @see HttpServlet#HttpServlet()
-     */
+	final static Logger logger = Logger.getLogger(UpdateProfileServlet.class);   
+	
     public UpdateProfileServlet() {
         super();
-        // TODO Auto-generated constructor stub
     }
 
-	/**
-	 * @see HttpServlet#doGet(HttpServletRequest request, HttpServletResponse response)
-	 */
 	protected void doGet(HttpServletRequest request, HttpServletResponse response) throws ServletException, IOException {
-		// TODO Auto-generated method stub
 		response.getWriter().append("Served at: ").append(request.getContextPath());
 	}
 
-	/**
-	 * @see HttpServlet#doPost(HttpServletRequest request, HttpServletResponse response)
-	 */
+
 	protected void doPost(HttpServletRequest request, HttpServletResponse response) throws ServletException, IOException {
-		// TODO Auto-generated method stub
-		//response.setContentType("text/html");
+
 		response.setContentType("text/json");
 		PrintWriter out=response.getWriter();
-		
 		
 		String username=request.getParameter("inputUsername");
 		String firstName=request.getParameter("inputFirstName");
@@ -69,7 +57,6 @@ public class UpdateProfileServlet extends HttpServlet {
 		String password=request.getParameter("inputPassword");
 		
 		UserBean userBean = new UserBean();
-		//map values to bean 
 		userBean.setUserName(username);
 		userBean.setPassword(password);
 		userBean.setFirstName(firstName);
@@ -84,11 +71,7 @@ public class UpdateProfileServlet extends HttpServlet {
 		userBean.setCity(city);
 		userBean.setGender(gender);
 		
-		
 		request.setAttribute("bean",userBean);
-		//debug********************************//
-		//System.out.println(username);
-		//System.out.println(email);
 		
 		Boolean status = false;
 		try {
@@ -99,7 +82,7 @@ public class UpdateProfileServlet extends HttpServlet {
 			Gson userJson = new Gson();
 			String data = userJson.toJson(userBean);
 			
-			MultivaluedMap formData = new MultivaluedMapImpl();
+			MultivaluedMap<String, String> formData = new MultivaluedMapImpl();
 			formData.add("username", username);
 			formData.add("password", password);
 			formData.add("firstName", firstName);
@@ -114,12 +97,9 @@ public class UpdateProfileServlet extends HttpServlet {
 			formData.add("dateofbirth", dateofbirth);
 			formData.add("gender", gender);
 			
-			//ClientResponse restResponse = webResource
-			  //  .type(MediaType.APPLICATION_FORM_URLENCODED_TYPE)
-			   // .post(ClientResponse.class, formData);
 			ClientResponse restResponse = webResource
-			    .type(MediaType.APPLICATION_JSON)
-			  .post(ClientResponse.class, data);
+												.type(MediaType.APPLICATION_JSON)
+												.post(ClientResponse.class, data);
 			
 			if (restResponse.getStatus() != 200) {
 				throw new RuntimeException("Failed : HTTP error code : " + restResponse.getStatus());
@@ -127,20 +107,22 @@ public class UpdateProfileServlet extends HttpServlet {
  
 			String statusString = restResponse.getEntity(String.class);
 			status = Boolean.parseBoolean(statusString);
+			
 		} catch (Exception e) {
 			e.printStackTrace();
 		}
 		
 		if(status){
-			//HttpSession session = request.getSession();
-			//session.setAttribute("USER", username);
-			System.out.println("Entered here");
+
+			//System.out.println("Entered here");
 			RequestDispatcher rd=request.getRequestDispatcher("UpdateProfile.jsp");
 			rd.forward(request, response);
+			logger.info("Profile update by: "+ username+": SUCCESS");
 		}
 		else{
-			RequestDispatcher rd=request.getRequestDispatcher("login-error.jsp");
+			RequestDispatcher rd=request.getRequestDispatcher("Error.jsp");
 			rd.forward(request, response);
+			logger.info("Profile update by: "+ username+": FAIL");
 		}
 	
 	}

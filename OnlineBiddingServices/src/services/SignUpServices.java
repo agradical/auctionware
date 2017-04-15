@@ -1,5 +1,7 @@
 package services;
 
+import java.sql.SQLException;
+
 import javax.ws.rs.Consumes;
 import javax.ws.rs.GET;
 import javax.ws.rs.POST;
@@ -10,6 +12,8 @@ import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.MultivaluedMap;
 import javax.ws.rs.core.Response;
 
+import org.apache.log4j.Logger;
+
 import com.google.gson.Gson;
 
 import DAO.DBOperation;
@@ -17,6 +21,8 @@ import beans.UserBean;
 
 @Path("/signupservices")
 public class SignUpServices {
+	
+	final static Logger logger = Logger.getLogger(SignUpServices.class);
 	
 	@Path("/newuser")
 	@POST
@@ -41,45 +47,53 @@ public class SignUpServices {
 		String gender = user.getGender();
 		String country = user.getCountry();
 		String dateofbirth = user.getDateOfBirth();
-		System.out.println("this is the email address entered " + emailAddress);
-		DBOperation dao = new DBOperation();
+		
+		//System.out.println("this is the email address entered " + emailAddress);
 		isAddNewUserSuccessful = DBOperation.userSignUp(username, password, firstName, lastName, emailAddress, address1,address2,city,state,country,dateofbirth, phone, gender);
-		System.out.println("isAddNewUserSuccessful: " + isAddNewUserSuccessful);
-		
-		//sql code to add userInformation to database goes here
-		
+		//System.out.println("isAddNewUserSuccessful: " + isAddNewUserSuccessful);		
 		
 		if(isAddNewUserSuccessful){
 			response = true;
 			System.out.println("value of string is: " + String.valueOf(response));
 			EmailService email = new EmailService();
 			email.setEmailTo(emailAddress);
-			email.setEmailFrom("mastraghav@gmail.com");
+			email.setEmailFrom("noreply@auctionware.com");
 			email.setHost("smtp.gmail.com");
 			email.setProperties();
 			email.setSession();
-			// debug code -> System.out.println(emailAddress);
 			
-			//default message for now
-			String subject = "Online Bidding successful registration";
+			String subject = "Auctionware successful registration";
 			String msg = "Congratulations " + firstName + " you've successfully created an account " +
 						"\nyour username is " + username +
 						"\n\nEnjoy our service!!!";
 			
 			email.sendEmail(subject, msg); 
+			
+			logger.info("Signup request: "+username+": SUCCESS");
 		}
 		else{
 			response = false;
+			logger.info("Signup request:"+username+": FALSE");
 		}
 		//System.out.println("value of string is: " + String.valueOf(response));
 		return Response.ok().entity(String.valueOf(response)).build();
 	}
 	
-	@Path("/availableusername/{username}")
+	@Path("/usernameavailability/{username}")
 	@GET
-	public String availableUsername(@PathParam("username") String username) {
-		//code here to see if userName exists		
-		return username + "001";
+	public Response isUsernameAvailable(@PathParam("username") String username) {
+		//code here to see if userName exists
+		logger.info("Username: "+username+" :availibility check");
+		DBOperation dao = new DBOperation();
+		boolean isPresent = false;
+		try {
+			isPresent = dao.isUser(username);
+		} catch (SQLException e) {
+			e.printStackTrace();
+		} catch (ClassNotFoundException c) {
+			c.printStackTrace();
+		}
+		return Response.ok().entity(String.valueOf(isPresent)).build();
 	}
 
 }

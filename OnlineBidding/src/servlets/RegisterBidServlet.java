@@ -13,6 +13,7 @@ import javax.servlet.http.HttpSession;
 import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.MultivaluedMap;
 
+import org.apache.log4j.Logger;
 import org.codehaus.jettison.json.JSONObject;
 
 import com.google.gson.Gson;
@@ -24,34 +25,21 @@ import com.sun.jersey.core.util.MultivaluedMapImpl;
 import beans.BidBean;
 import beans.RegisterBidBean;
 
-/**
- * Servlet implementation class PostControllerServlet
- */
 @WebServlet("/RegisterBidServlet")
 public class RegisterBidServlet extends HttpServlet {
 	private static final long serialVersionUID = 1L;
-       
-    /**
-     * @see HttpServlet#HttpServlet()
-     */
+	final static Logger logger = Logger.getLogger(RegisterBidServlet.class);   
+
     public RegisterBidServlet() {
         super();
-        // TODO Auto-generated constructor stub
     }
-
-	/**
-	 * @see HttpServlet#doPost(HttpServletRequest request, HttpServletResponse response)
-	 */
     
     protected void doPost(HttpServletRequest request, HttpServletResponse response) throws ServletException, IOException {
-		System.out.println("do post is running!!");
+		//
+    	//System.out.println("do post is running!!");
 		response.setContentType("text/json");
 		PrintWriter out=response.getWriter();
-		
-		
-		//write code for Prod_ID and U_ID here, everything else is taken care of
-		
-		//String bidID = request.getParameter("bidID");    
+	   
 		String itemID = request.getParameter("itemId"); 
 		String bidderId = request.getParameter("bidderId"); 
 		String postUserID = request.getParameter("postUserId");
@@ -65,14 +53,10 @@ public class RegisterBidServlet extends HttpServlet {
 		String postUserEmail= request.getParameter("postUserEmail");
 		String bidUserEmail = request.getParameter("bidUserEmail");
 		
-		System.out.println("RegisterBidServlet-postuserid : "+ postUserID );
+		//System.out.println("RegisterBidServlet-postuserid : "+ postUserID );
 		
 		RegisterBidBean bean=new RegisterBidBean();
-		
-		//write set functions for Prod_ID and U_ID
-		
-		
-		//bean.setBidID(bidID);
+
 		bean.setItemName(itemName);
 		bean.setPostUserEmail(postUserEmail);
 		bean.setBidUserEmail(bidUserEmail);
@@ -96,22 +80,7 @@ public class RegisterBidServlet extends HttpServlet {
 			
 			Gson userJson = new Gson();
 			String data = userJson.toJson(bean);
-			
-			
-			/*MultivaluedMap formData = new MultivaluedMapImpl();
-			formData.add("username", username);
-			formData.add("password", password);
-			formData.add("firstName", firstName);
-			formData.add("lastName", lastName);
-			formData.add("address", address);
-			formData.add("email", email);
-			formData.add("phone", phone);*/
-			
-			
-			
-			//ClientResponse restResponse = webResource
-			//    .type(MediaType.APPLICATION_FORM_URLENCODED_TYPE)
-			//    .post(ClientResponse.class, formData);
+
 			ClientResponse restResponse = webResource
 				    .type(MediaType.APPLICATION_JSON)
 				    .post(ClientResponse.class, data);
@@ -128,15 +97,15 @@ public class RegisterBidServlet extends HttpServlet {
 		
 		
 		if(status){
-			//HttpSession session = request.getSession();
-			//session.setAttribute("USER",user);
-			System.out.println("session at the end with postuserId= "+ bean.getPostUserID() );
+			//System.out.println("session at the end with postuserId= "+ bean.getPostUserID() );
 			RequestDispatcher rd=request.getRequestDispatcher("MainPage.jsp");
 			rd.forward(request, response);
+			logger.info("Bid posting SUCCESS");
 		}
 		else{
-			RequestDispatcher rd=request.getRequestDispatcher("login-error.jsp");
+			RequestDispatcher rd=request.getRequestDispatcher("Error.jsp");
 			rd.forward(request, response);
+			logger.info("Bid posting FAIL");
 		}
 	
     }
