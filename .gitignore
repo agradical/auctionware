@@ -1,6 +1,6 @@
 *.classpath
-*.settings/
-*/target/
+*.settings/*
+*/target/*
 *.pdf
 *.sql
 *.log
