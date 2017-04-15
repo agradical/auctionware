@@ -1,0 +1,7 @@
+.*.classpath
+.*.settings/
+.*target/
+.*.pdf
+.*.sql
+.*.log
+*.class
